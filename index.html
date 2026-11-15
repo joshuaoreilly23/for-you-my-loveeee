@@ -73,7 +73,12 @@ const ctx = canvas.getContext("2d");
 
 let width;
 let height;
-let scaleFactor;
+let scaleFactor = 1;
+
+let particles = [];
+
+
+/* SCREEN SIZE */
 
 function resize() {
 
@@ -93,21 +98,20 @@ function resize() {
         0,
         0,
         dpr,
-        width / 2,
-        height / 2
+        0,
+        0
     );
 
-    // Original Turtle canvas was 700 x 700
+    /*
+        Original Turtle window was 700 x 700.
+        Scale the heart so it fits the screen.
+    */
+
     scaleFactor = Math.min(width, height) / 700;
 }
 
-resize();
 
-window.addEventListener("resize", () => {
-    resize();
-    createParticles();
-});
-
+/* ORIGINAL HEART */
 
 function heart(a, scale) {
 
@@ -131,16 +135,16 @@ function heart(a, scale) {
 }
 
 
-let particles = [];
-
+/* CREATE PARTICLES */
 
 function createParticles() {
 
     particles = [];
 
+
     /*
-        FIRST PARTICLE LAYER
-        Same idea as the original Python code.
+        FIRST LAYER
+        Same style as the original Python.
     */
 
     for (let i = 0; i < 10000; i++) {
@@ -150,15 +154,16 @@ function createParticles() {
             Math.PI *
             2;
 
-        const originalScale =
+        const sc =
             0.5 +
-            Math.random() * 15;
+            Math.random() * 15.5;
 
         const point =
             heart(
                 a,
-                originalScale * scaleFactor
+                sc * scaleFactor
             );
+
 
         const angle =
             Math.atan2(
@@ -167,23 +172,35 @@ function createParticles() {
             ) +
             (Math.random() - 0.5);
 
+
         const length =
             (4 + Math.random() * 10) *
             scaleFactor;
 
+
         particles.push({
+
             x: point.x,
+
             y: point.y,
+
             length: length,
+
             angle: angle,
-            alpha: 0.25 + Math.random() * 0.35,
-            width: 0.5 + Math.random() * 0.7
+
+            alpha:
+                0.25 +
+                Math.random() * 0.30,
+
+            width:
+                0.5 +
+                Math.random() * 0.7
         });
     }
 
 
     /*
-        SECOND PARTICLE LAYER
+        SECOND LAYER
     */
 
     for (let i = 0; i < 3500; i++) {
@@ -193,11 +210,13 @@ function createParticles() {
             Math.PI *
             2;
 
+
         const point =
             heart(
                 a,
                 16.9 * scaleFactor
             );
+
 
         const angle =
             Math.atan2(
@@ -206,24 +225,31 @@ function createParticles() {
             ) +
             (Math.random() - 0.5) * 0.7;
 
+
         const length =
             (10 + Math.random() * 22) *
             scaleFactor;
 
+
         particles.push({
-            x: point.x +
+
+            x:
+                point.x +
                 (Math.random() - 0.5) *
                 4 *
                 scaleFactor,
 
-            y: point.y +
+            y:
+                point.y +
                 (Math.random() - 0.5) *
                 4 *
                 scaleFactor,
 
-            length: length,
+            length:
+                length,
 
-            angle: angle,
+            angle:
+                angle,
 
             alpha:
                 0.45 +
@@ -237,17 +263,49 @@ function createParticles() {
 }
 
 
+/* INITIAL SETUP */
+
+resize();
+
 createParticles();
 
+
+/* REDRAW PARTICLES WHEN SCREEN CHANGES */
+
+window.addEventListener(
+    "resize",
+    function() {
+
+        resize();
+
+        createParticles();
+    }
+);
+
+
+/* DRAW HEART */
 
 function draw() {
 
     ctx.clearRect(
-        -width / 2,
-        -height / 2,
+        0,
+        0,
         width,
         height
     );
+
+
+    /*
+        Move the origin to the exact
+        centre of the screen.
+    */
+
+    const centerX =
+        width / 2;
+
+    const centerY =
+        height / 2;
+
 
     for (const p of particles) {
 
@@ -256,36 +314,48 @@ function draw() {
             p.length *
             Math.cos(p.angle);
 
+
         const endY =
             p.y +
             p.length *
             Math.sin(p.angle);
 
+
         ctx.beginPath();
 
+
         ctx.moveTo(
-            p.x,
-            p.y
+            p.x + centerX,
+            p.y + centerY
         );
 
+
         ctx.lineTo(
-            endX,
-            endY
+            endX + centerX,
+            endY + centerY
         );
+
 
         ctx.strokeStyle =
             `rgba(
                 255,
-                ${Math.floor(60 + p.alpha * 100)},
-                ${Math.floor(120 + p.alpha * 120)},
+                ${Math.floor(
+                    60 + p.alpha * 100
+                )},
+                ${Math.floor(
+                    120 + p.alpha * 120
+                )},
                 ${p.alpha}
             )`;
+
 
         ctx.lineWidth =
             p.width;
 
+
         ctx.stroke();
     }
+
 
     requestAnimationFrame(draw);
 }
